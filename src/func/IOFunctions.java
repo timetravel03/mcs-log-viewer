@@ -34,12 +34,13 @@ public class IOFunctions {
         boolean firstRecord = true;
         try {
             List<String> lines = Files.readAllLines(Path.of(logPath));
+            GVar.SERVER_LOG_LATEST_STRING = lines.toString();
             Object[] record = new Object[3];
 
             for (String line : lines) {
                 Matcher recordStartMatcher = recordStartPtt.matcher(line);
                 if (recordStartMatcher.find()) {
-                    if (!firstRecord){
+                    if (!firstRecord) {
                         record[EVENT_DESCRIPTION] = eventDescription;
                         GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.add(record);
                     }
@@ -48,17 +49,17 @@ public class IOFunctions {
                     firstRecord = false;
 
                     // hora
-                    int openTime = line.indexOf('[');
+                    int openTime = line.indexOf('[') + 1;
                     int closeTime = line.indexOf(']');
                     record[SERVER_TIME] = line.substring(openTime, closeTime);
 
                     // evento
-                    int openEvent = line.indexOf('[', openTime+1);
-                    int closeEvent = line.indexOf(']', closeTime+1);
+                    int openEvent = line.indexOf('[', openTime + 1) + 1;
+                    int closeEvent = line.indexOf(']', closeTime + 1);
                     record[EVENT] = line.substring(openEvent, closeEvent);
 
                     // limpiar mensaje
-                    int startMessage = line.indexOf(':', closeEvent);
+                    int startMessage = line.indexOf(':', closeEvent) + 1;
                     eventDescription = new StringBuilder(line.substring(startMessage));
                 } else {
                     eventDescription.append(line);

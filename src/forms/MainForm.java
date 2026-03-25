@@ -4,24 +4,40 @@ import func.GVar;
 import func.IOFunctions;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class MainForm extends JFrame {
     private JPanel contentPane;
     private JTable table1; // NOTE tiene que ir dentro de un JScroll para que muestre los nombres de las columnas
+    private JTabbedPane tabbedPane1;
+    private JScrollPane latestScrollPane;
+    private JTextField txtServerFolder;
+    private JButton openButton;
+    private JTabbedPane tabbedPane2;
+    private JPanel latestPane;
+    private JPanel configPane;
+    private JPanel rawLatestPane;
+    private JTextPane txtLatestRaw;
+
+    private void setFormConfig() {
+        txtLatestRaw.setEditable(false);
+    }
 
     public MainForm() {
-        // cosas de mierda q a nadie le importa
-        setTitle("mcs-log-viewer");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setContentPane(contentPane);
+
+        tabbedPane1.setTitleAt(0, "latest.log");
+        tabbedPane2.setTitleAt(0, "Raw");
+        tabbedPane2.setTitleAt(1, "Table");
+        tabbedPane1.setTitleAt(1, "Config");
 
         // datamodel para el jtable
         DefaultTableModel model = new DefaultTableModel(
                 new Object[]{"Server Time", "Event", "Description"}, 0
-        ) {@Override
+        ) {
+            @Override
             public Class<?> getColumnClass(int columnIndex) {
                 return switch (columnIndex) {
                     case 0 -> String.class;
@@ -38,11 +54,25 @@ public class MainForm extends JFrame {
         if (IOFunctions.loadServerLog("X:\\Network Storage\\latest.log")) {
             Object[][] vector = GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.toArray(new Object[3][GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.size()]);
             model.setDataVector(vector, new Object[]{"Server Time", "Event", "Description"});
+            txtLatestRaw.setText(GVar.SERVER_LOG_LATEST_STRING);
         }
 
-        // duh
-        pack();
-        setLocationRelativeTo(null);
-        setVisible(true);
+        openButton.addActionListener(new ActionListener() {
+            /**
+             * Invoked when an action occurs.
+             *
+             * @param e the event to be processed
+             */
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser jFileChooser = new JFileChooser();
+                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                jFileChooser.setDialogTitle("Select server folder");
+                int result = jFileChooser.showDialog(openButton.getParent(), "Select");
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    txtServerFolder.setText(jFileChooser.getSelectedFile().getPath());
+                }
+            }
+        });
     }
 }
