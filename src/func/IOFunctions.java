@@ -1,5 +1,6 @@
 package func;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -68,6 +69,22 @@ public class IOFunctions {
             return true;
         } catch (IOException ioe) {
             return false;
+        }
+    }
+
+    public static String getLogsPath() {
+        if (GVar.SERVER_FOLDER != null && !GVar.SERVER_FOLDER.isEmpty()) {
+            return GVar.SERVER_FOLDER + "/logs/";
+        } else {
+            return "";
+        }
+    }
+
+    public static void exitTasks() {
+        try {
+            AppConfig.getInstance().save();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error on config save");
         }
     }
 }

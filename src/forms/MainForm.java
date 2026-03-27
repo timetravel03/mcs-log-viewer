@@ -1,12 +1,14 @@
 package forms;
 
+import func.AppConfig;
 import func.GVar;
 import func.IOFunctions;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+
+import org.apache.commons.lang.StringEscapeUtils;
 
 public class MainForm extends JFrame {
     private JPanel contentPane;
@@ -21,41 +23,45 @@ public class MainForm extends JFrame {
     private JPanel rawLatestPane;
     private JTextPane txtLatestRaw;
 
+    private AppConfig config;
+
     private void setFormConfig() {
         txtLatestRaw.setEditable(false);
     }
 
-    public MainForm() {
-        setContentPane(contentPane);
+    private final DefaultTableModel model = new DefaultTableModel(
+            new Object[]{"Server Time", "Event", "Description"}, 0
+    ) {
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+    };
 
+    private void loadWindowContent() {
+        config = AppConfig.getInstance();
+        config.load();
+        GVar.SERVER_FOLDER = config.get(AppConfig.CONFIG_KEYS.SERVER_PATH, "");
+
+        // tab zone
         tabbedPane1.setTitleAt(0, "latest.log");
         tabbedPane2.setTitleAt(0, "Raw");
         tabbedPane2.setTitleAt(1, "Table");
         tabbedPane1.setTitleAt(1, "Config");
 
-        // datamodel para el jtable
-        DefaultTableModel model = new DefaultTableModel(
-                new Object[]{"Server Time", "Event", "Description"}, 0
-        ) {
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return switch (columnIndex) {
-                    case 0 -> String.class;
-                    case 1 -> String.class;
-                    case 2 -> String.class;
-                    default -> String.class;
-                };
-            }
-        };
-
+        // JTable zone
         table1.setModel(model);
-
-        //test
-        if (IOFunctions.loadServerLog("X:\\Network Storage\\latest.log")) {
+        if (!GVar.SERVER_FOLDER.isEmpty() && IOFunctions.loadServerLog(GVar.SERVER_FOLDER)) {
             Object[][] vector = GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.toArray(new Object[3][GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.size()]);
             model.setDataVector(vector, new Object[]{"Server Time", "Event", "Description"});
             txtLatestRaw.setText(GVar.SERVER_LOG_LATEST_STRING);
         }
+    }
+
+    public MainForm() {
+        setContentPane(contentPane);
+
+        loadWindowContent();
 
         openButton.addActionListener(new ActionListener() {
             /**
@@ -71,6 +77,29 @@ public class MainForm extends JFrame {
                 int result = jFileChooser.showDialog(openButton.getParent(), "Select");
                 if (result == JFileChooser.APPROVE_OPTION) {
                     txtServerFolder.setText(jFileChooser.getSelectedFile().getPath());
+                    GVar.SERVER_FOLDER = StringEscapeUtils.escapeSql(txtServerFolder.getText().trim());
+                    AppConfig.getInstance().set(AppConfig.CONFIG_KEYS.SERVER_PATH, GVar.SERVER_FOLDER);
+                    IOFunctions.loadServerLog(IOFunctions.getLogsPath());
+                }
+            }
+        });
+        txtServerFolder.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                super.focusLost(e);
+
+            }
+        });
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                if (JOptionPane.showConfirmDialog(rootPane,
+                        "Confirm exit",
+                        "Good-bye",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                    IOFunctions.exitTasks();
+                    System.exit(0);
                 }
             }
         });

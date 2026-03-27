@@ -10,6 +10,6 @@ public class Main {
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
-        f.setSize(800,600);
+        f.setSize(800, 600);
     }
 }
