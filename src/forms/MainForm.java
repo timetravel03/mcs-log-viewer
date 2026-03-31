@@ -1,6 +1,6 @@
 package forms;
 
-import func.AppConfig;
+import classes.AppConfig;
 import func.GVar;
 import func.IOFunctions;
 

@@ -1,4 +1,4 @@
-package func;
+package classes;
 
 import java.io.*;
 import java.nio.file.*;
