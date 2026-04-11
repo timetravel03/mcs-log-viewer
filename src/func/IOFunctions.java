@@ -20,6 +20,7 @@ public class IOFunctions {
         try {
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return false;
         }
         return true;
@@ -66,6 +67,7 @@ public class IOFunctions {
             }
             return true;
         } catch (IOException ioe) {
+            System.out.println(ioe.getMessage());
             return false;
         }
     }

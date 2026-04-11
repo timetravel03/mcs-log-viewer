@@ -1,6 +1,7 @@
 package forms;
 
 import classes.AppConfig;
+import classes.ServerRouter;
 import func.GVar;
 import func.IOFunctions;
 
@@ -22,8 +23,14 @@ public class MainForm extends JFrame {
     private JPanel configPane;
     private JPanel rawLatestPane;
     private JTextPane txtLatestRaw;
+    private JTextField txtSMBPath;
+    private JButton connectButton;
+    private JTextField txtSMBUser;
+    private JTextField txtSMBPwd;
+    private JButton btnSaveConfig;
 
     private AppConfig config;
+    private ServerRouter router;
 
     private void setFormConfig() {
         txtLatestRaw.setEditable(false);
@@ -38,10 +45,14 @@ public class MainForm extends JFrame {
         }
     };
 
-    private void loadWindowContent() {
+    private void initialize(){
         config = AppConfig.getInstance();
-        config.load();
         GVar.SERVER_FOLDER = config.get(AppConfig.CONFIG_KEYS.SERVER_PATH, "");
+        router = new ServerRouter();
+    }
+
+    private void loadWindowContent() {
+        initialize();
 
         // tab zone
         tabbedPane1.setTitleAt(0, "latest.log");
@@ -51,10 +62,13 @@ public class MainForm extends JFrame {
 
         // JTable zone
         table1.setModel(model);
-        if (!GVar.SERVER_FOLDER.isEmpty() && IOFunctions.loadServerLog(GVar.SERVER_FOLDER)) {
-            Object[][] vector = GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.toArray(new Object[3][GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.size()]);
-            model.setDataVector(vector, new Object[]{"Server Time", "Event", "Description"});
-            txtLatestRaw.setText(GVar.SERVER_LOG_LATEST_STRING);
+        if (!GVar.SERVER_FOLDER.isEmpty()) {
+            txtServerFolder.setText(GVar.SERVER_FOLDER);
+            if (IOFunctions.loadServerLog(GVar.SERVER_FOLDER)){
+                Object[][] vector = GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.toArray(new Object[3][GVar.SERVER_LOG_LATEST_JTABLE_ARRAY.size()]);
+                model.setDataVector(vector, new Object[]{"Server Time", "Event", "Description"});
+                txtLatestRaw.setText(GVar.SERVER_LOG_LATEST_STRING);
+            }
         }
     }
 
@@ -100,6 +114,16 @@ public class MainForm extends JFrame {
                         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
                     IOFunctions.exitTasks();
                     System.exit(0);
+                }
+            }
+        });
+        btnSaveConfig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (txtServerFolder.getText().isEmpty()) {
+                    AppConfig.getInstance().set(AppConfig.CONFIG_KEYS.SERVER_PATH, txtServerFolder.getText());
+                } else {
+                    AppConfig.getInstance().set(AppConfig.CONFIG_KEYS.SERVER_PATH, txtSMBPath.getText());
                 }
             }
         });

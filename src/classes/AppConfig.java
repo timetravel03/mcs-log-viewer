@@ -43,6 +43,7 @@ public class AppConfig {
                 props.load(in);
             } catch (IOException e) {
                 // fall back to defaults
+                System.out.println(e.getMessage());
             }
         }
     }
